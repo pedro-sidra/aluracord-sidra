@@ -1,0 +1,21 @@
+{
+  "name": "aluracord",
+  "version": "0.01",
+  "description": "Projeto para a imersão react",
+  "main": "index.js",
+  "repository": "https://github.com/pedro-sidra/aluracord-sidra",
+  "author": "Pedro Sidra de Freitas",
+  "license": "MIT",
+  "dependencies": {
+    "@skynexui/components": "^1.23.9",
+    "next": "^12.0.8",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  }
+}
