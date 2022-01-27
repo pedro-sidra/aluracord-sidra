@@ -89,7 +89,9 @@ export default function PaginaInicial() {
               marginBottom: "32px",
             }}
           >
-            <Titulo tag="h2">Bem vindo{userInfo.name ? ", " + userInfo.name : ""}!</Titulo>
+            <Titulo tag="h2">
+              Bem vindo{userInfo.name ? ", " + userInfo.name : ""}!
+            </Titulo>
             <Text
               variant="body3"
               styleSheet={{
@@ -133,18 +135,6 @@ export default function PaginaInicial() {
                     }
                   }, 500)
                 );
-
-                //   .then(function (response) {
-                //     if (response.ok) {
-                //       response.json().then(function (json) {
-                //         setUsername(json.login);
-                //       });
-                //     }
-                //   })
-                //   .catch(function (error) {
-                //     console.log("user does not exist");
-                //   });
-                // setTUsername(valor);
               }}
               placeholder="Seu usuário aqui"
               textFieldColors={{
