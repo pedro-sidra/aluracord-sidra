@@ -18,14 +18,14 @@ export default function ChatPage() {
   const [mensagem, setMensagem] = useState("");
   const [mensagens, setMensagens] = useState([]);
   const [picture, setPicture] = useState("");
+  const [loggedIn, setLoggedIn] = useState("");
 
   const roteamento = useRouter();
 
-  const user = roteamento.query.user;
-  React.useEffect(()=>{
-    setPicture(roteamento.query.picture)
-
-  },[roteamento.query.picture])
+  React.useEffect(() => {
+    setPicture(roteamento.query.picture);
+    setLoggedIn(roteamento.query.username);
+  }, [roteamento.query]);
 
   React.useEffect(() => {
     supabaseClient
@@ -60,8 +60,9 @@ export default function ChatPage() {
     }
     const new_mensagem = {
       texto: mensagem,
-      de: "pedro-sidra",
+      de: loggedIn,
     };
+    console.log(loggedIn);
 
     supabaseClient
       .from("mensagens")
@@ -99,7 +100,7 @@ export default function ChatPage() {
           backgroundColor: appConfig.theme.colors.neutrals[700],
           height: "100%",
           maxWidth: "1080px",
-          margin:"2em 2em",
+          margin: "2em 2em",
           maxHeight: "95vh",
           padding: "32px",
         }}
@@ -121,6 +122,7 @@ export default function ChatPage() {
             mensagens={mensagens}
             setMensagens={setMensagens}
             onDelete={deleteMessage}
+            loggedIn={loggedIn}
           />
 
           <Box
@@ -280,12 +282,16 @@ function MessageList(props) {
               }}
             >
               {item.texto}
-              <Button
-                label="x"
-                variant="tertiary"
-                size="xs"
-                onClick={props.onDelete(item.id)}
-              />
+              {item.de === props.loggedIn ? (
+                <Button
+                  label="x"
+                  variant="tertiary"
+                  size="xs"
+                  onClick={props.onDelete(item.id)}
+                />
+              ) : (
+                <></>
+              )}
             </Box>
           </Text>
         );
