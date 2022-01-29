@@ -2,31 +2,73 @@ import { Box, Text, TextField, Image, Button } from "@skynexui/components";
 import { useRouter } from "next/router";
 import React, { useState } from "react";
 import appConfig from "../config.json";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import react from "react";
+
+const SUPABASE_ANON_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzQ2ODA4MiwiZXhwIjoxOTU5MDQ0MDgyfQ.K_kZEeB_elDSsyKTtvV-x7G-EJyinInL2_DKR1fw_dQ";
+const SUPABASE_URL = "https://hjrthpfurhaiopxgkemf.supabase.co";
+
+// Create a single supabase client for interacting with your database
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 export default function ChatPage() {
   // Sua lógica vai aqui
 
   const [mensagem, setMensagem] = useState("");
   const [mensagens, setMensagens] = useState([]);
+  const [picture, setPicture] = useState("");
 
+  const roteamento = useRouter();
+
+  const user = roteamento.query.user;
+  React.useEffect(()=>{
+    setPicture(roteamento.query.picture)
+
+  },[roteamento.query.picture])
+
+  React.useEffect(() => {
+    supabaseClient
+      .from("mensagens")
+      .select("*")
+      .order("id", { ascending: false })
+      .then(({ data }) => {
+        console.log(data);
+        setMensagens(data);
+      });
+  }, []);
+
+  function deleteMessage(messageId) {
+    return (event) => {
+      supabaseClient
+        .from("mensagens")
+        .delete()
+        .match({ id: messageId })
+        .then((response) => {
+          console.log(response);
+        });
+      setMensagens(
+        mensagens.filter((item) => {
+          return item.id != messageId;
+        })
+      );
+    };
+  }
   function sendMessage() {
     if (mensagem.length === 0) {
       return;
     }
     const new_mensagem = {
-      id: mensagens.length,
-      message: mensagem,
-      user: "pedro-sidra",
-      user_name: "Pedro",
-      date: new Date().toLocaleDateString(),
+      texto: mensagem,
+      de: "pedro-sidra",
     };
 
-    // Jeito idiota
-    // mensagens.push(new_mensagem);
-    // setMensagens(mensagens);
-
-    // Jeito do @omariosouto
-    setMensagens([new_mensagem, ...mensagens]);
+    supabaseClient
+      .from("mensagens")
+      .insert([new_mensagem])
+      .then((response) => {
+        setMensagens([response.data[0], ...mensagens]);
+      });
 
     // Limpar variável
     setMensagem("");
@@ -39,8 +81,8 @@ export default function ChatPage() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: appConfig.theme.colors.primary[500],
-        backgroundImage: `url(https://virtualbackgrounds.site/wp-content/uploads/2020/08/the-matrix-digital-rain.jpg)`,
+        backgroundColor: appConfig.theme.colors.neutrals["050"],
+        backgroundImage: `url(${picture})`,
         backgroundRepeat: "no-repeat",
         backgroundSize: "cover",
         backgroundBlendMode: "multiply",
@@ -56,7 +98,8 @@ export default function ChatPage() {
           borderRadius: "5px",
           backgroundColor: appConfig.theme.colors.neutrals[700],
           height: "100%",
-          maxWidth: "95%",
+          maxWidth: "1080px",
+          margin:"2em 2em",
           maxHeight: "95vh",
           padding: "32px",
         }}
@@ -74,7 +117,11 @@ export default function ChatPage() {
             padding: "16px",
           }}
         >
-          <MessageList mensagens={mensagens} setMensagens={setMensagens} />
+          <MessageList
+            mensagens={mensagens}
+            setMensagens={setMensagens}
+            onDelete={deleteMessage}
+          />
 
           <Box
             as="form"
@@ -95,10 +142,8 @@ export default function ChatPage() {
               // Send message
               onKeyDown={(event) => {
                 if (event.key === "Enter" && !event.shiftKey) {
-                  console.log(event);
                   event.preventDefault();
                   sendMessage();
-                  console.log(mensagens);
                 }
               }}
               styleSheet={{
@@ -165,15 +210,6 @@ function Header() {
 }
 
 function MessageList(props) {
-  function deleteMessage(messageId) {
-    return (event) => {
-      props.setMensagens(
-        props.mensagens.filter((item) => {
-          return item.id != messageId;
-        })
-      );
-    };
-  }
   return (
     <Box
       tag="ul"
@@ -200,8 +236,8 @@ function MessageList(props) {
               },
             }}
           >
-            {(props.mensagens[index + 1] || { user: undefined }).user ===
-            item.user ? (
+            {(props.mensagens[index + 1] || { de: undefined }).de ===
+            item.de ? (
               // Don`t show user pic if the last message already did
               <></>
             ) : (
@@ -221,9 +257,9 @@ function MessageList(props) {
                     display: "inline-block",
                     marginRight: "8px",
                   }}
-                  src={`https://github.com/${item.user}.png`}
+                  src={`https://github.com/${item.de}.png`}
                 />
-                <Text tag="strong">{item.user_name}</Text>
+                <Text tag="strong">{item.de}</Text>
                 <Text
                   styleSheet={{
                     fontSize: "10px",
@@ -232,7 +268,7 @@ function MessageList(props) {
                   }}
                   tag="span"
                 >
-                  {item.date}
+                  {item.created_at}
                 </Text>
               </Box>
             )}
@@ -243,12 +279,12 @@ function MessageList(props) {
                 whiteSpace: "pre-line",
               }}
             >
-              {item.message}
+              {item.texto}
               <Button
                 label="x"
                 variant="tertiary"
                 size="xs"
-                onClick={deleteMessage(item.id)}
+                onClick={props.onDelete(item.id)}
               />
             </Box>
           </Text>
