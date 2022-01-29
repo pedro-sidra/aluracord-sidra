@@ -1,9 +1,32 @@
 import { Box, Text, TextField, Image, Button } from "@skynexui/components";
-import React from "react";
+import React, { useState } from "react";
 import appConfig from "../config.json";
 
 export default function ChatPage() {
   // Sua lógica vai aqui
+
+  const [mensagem, setMensagem] = useState("");
+  const [mensagens, setMensagens] = useState([]);
+
+  function sendMessage() {
+    const new_mensagem = {
+      id: mensagens.length,
+      message: mensagem,
+      user: "pedro-sidra",
+      user_name: "Pedro",
+      date: new Date().toLocaleDateString(),
+    };
+
+    // Jeito idiota
+    // mensagens.push(new_mensagem);
+    // setMensagens(mensagens);
+
+    // Jeito do @omariosouto
+    setMensagens([...mensagens, new_mensagem]);
+
+    // Limpar variável
+    setMensagem("");
+  }
 
   // ./Sua lógica vai aqui
   return (
@@ -47,7 +70,7 @@ export default function ChatPage() {
             padding: "16px",
           }}
         >
-          <MessageList mensagens={[]} />
+          <MessageList mensagens={mensagens} />
 
           <Box
             as="form"
@@ -59,6 +82,21 @@ export default function ChatPage() {
             <TextField
               placeholder="Insira sua mensagem aqui..."
               type="textarea"
+              value={mensagem}
+              // Update message
+              onChange={function (event) {
+                const value = event.target.value;
+                setMensagem(value);
+              }}
+              // Send message
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && !event.shiftKey) {
+                  console.log(event);
+                  event.preventDefault();
+                  sendMessage();
+                  console.log(mensagens);
+                }
+              }}
               styleSheet={{
                 width: "100%",
                 border: "0",
@@ -103,6 +141,7 @@ function Header() {
 
 function MessageList(props) {
   console.log("MessageList", props);
+  const messages = [].concat(props.mensagens).reverse();
   return (
     <Box
       tag="ul"
@@ -115,51 +154,53 @@ function MessageList(props) {
         marginBottom: "16px",
       }}
     >
-      <Text
-        key="msg"
-        tag="li"
-        styleSheet={{
-          borderRadius: "5px",
-          padding: "6px",
-          marginBottom: "12px",
-          hover: {
-            backgroundColor: appConfig.theme.colors.neutrals[700],
-          },
-        }}
-      >
-        <Box
-          styleSheet={{
-            marginBottom: "8px",
-          }}
-        >
-          <Image
-            styleSheet={{
-              width: "20px",
-              height: "20px",
-              borderRadius: "50%",
-              display: "inline-block",
-              marginRight: "8px",
-            }}
-            src={`https://github.com/vanessametonini.png`}
-          />
-          <Text tag="strong">
-            Vanessa Metonii
-            {/* {mensagem.de} */}
-          </Text>
+      {messages.map((item) => {
+        return (
           <Text
+            key={item.id}
+            tag="li"
             styleSheet={{
-              fontSize: "10px",
-              marginLeft: "8px",
-              color: appConfig.theme.colors.neutrals[300],
+              borderRadius: "5px",
+              padding: "6px",
+              marginBottom: "12px",
+              hover: {
+                backgroundColor: appConfig.theme.colors.neutrals[700],
+              },
             }}
-            tag="span"
           >
-            {new Date().toLocaleDateString()}
+            <Box
+              styleSheet={{
+                marginBottom: "8px",
+              }}
+            >
+              <Image
+                styleSheet={{
+                  width: "20px",
+                  height: "20px",
+                  borderRadius: "50%",
+                  display: "inline-block",
+                  marginRight: "8px",
+                }}
+                src={`https://github.com/${item.user}.png`}
+              />
+              <Text tag="strong">{item.user_name}</Text>
+              <Text
+                styleSheet={{
+                  fontSize: "10px",
+                  marginLeft: "8px",
+                  color: appConfig.theme.colors.neutrals[300],
+                }}
+                tag="span"
+              >
+                {item.date}
+              </Text>
+            </Box>
+            {item.message.split("\n").map((line) => {
+              return <Box tag="div">{line}</Box>;
+            })}
           </Text>
-        </Box>
-        Oi
-        {/* {mensagem.texto} */}
-      </Text>
+        );
+      })}
     </Box>
   );
 }
