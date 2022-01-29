@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import appConfig from "../config.json";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import react from "react";
+import { ButtonSendSticker } from "../src/components/ButtonSendSticker";
 
 const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzQ2ODA4MiwiZXhwIjoxOTU5MDQ0MDgyfQ.K_kZEeB_elDSsyKTtvV-x7G-EJyinInL2_DKR1fw_dQ";
@@ -17,15 +18,11 @@ export default function ChatPage() {
 
   const [mensagem, setMensagem] = useState("");
   const [mensagens, setMensagens] = useState([]);
-  const [picture, setPicture] = useState("");
-  const [loggedIn, setLoggedIn] = useState("");
 
   const roteamento = useRouter();
 
-  React.useEffect(() => {
-    setPicture(roteamento.query.picture);
-    setLoggedIn(roteamento.query.username);
-  }, [roteamento.query]);
+  const picture = roteamento.query.picture;
+  const loggedIn = roteamento.query.username;
 
   React.useEffect(() => {
     supabaseClient
@@ -175,6 +172,7 @@ export default function ChatPage() {
                 height: "100%",
               }}
             />
+            <ButtonSendSticker/>
           </Box>
         </Box>
       </Box>
