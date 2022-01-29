@@ -31,8 +31,19 @@ export default function PaginaInicial() {
   // User info from API
   const [userInfo, setUserInfo] = React.useState("");
 
+  const [picture, setPicture] = React.useState("");
+
   // Router
   const roteamento = useRouter();
+
+  React.useEffect(() => {
+    fetch("https://source.unsplash.com/random/?background").then(
+      async (data) => {
+        console.log(data);
+        console.log(data.url);
+        setPicture(data.url);
+      }
+    ); }, []);
 
   return (
     <>
@@ -43,8 +54,7 @@ export default function PaginaInicial() {
           justifyContent: "center",
           // Use a random image from unsplash.com as the background
           // (Matrix is cool @alura, but it gets boring the 100th time!)
-          backgroundImage:
-            "url(https://source.unsplash.com/random/?background)",
+          backgroundImage: `url(${picture})`,
           // Keep background color to give a cool shade
           backgroundColor: appConfig.theme.colors.neutrals["200"],
           backgroundRepeat: "no-repeat",
@@ -76,7 +86,7 @@ export default function PaginaInicial() {
             onSubmit={function (props) {
               props.preventDefault();
               console.log("Submetido:", props);
-              roteamento.push("/chat");
+              roteamento.push(`/chat?username=${username}&picture=${picture}`);
               // window.location.href="/chat"
             }}
             styleSheet={{
