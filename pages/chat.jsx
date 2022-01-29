@@ -9,6 +9,9 @@ export default function ChatPage() {
   const [mensagens, setMensagens] = useState([]);
 
   function sendMessage() {
+    if (mensagem.length === 0) {
+      return;
+    }
     const new_mensagem = {
       id: mensagens.length,
       message: mensagem,
@@ -22,7 +25,7 @@ export default function ChatPage() {
     // setMensagens(mensagens);
 
     // Jeito do @omariosouto
-    setMensagens([...mensagens, new_mensagem]);
+    setMensagens([new_mensagem, ...mensagens]);
 
     // Limpar variável
     setMensagem("");
@@ -70,7 +73,7 @@ export default function ChatPage() {
             padding: "16px",
           }}
         >
-          <MessageList mensagens={mensagens} />
+          <MessageList mensagens={mensagens} setMensagens={setMensagens} />
 
           <Box
             as="form"
@@ -105,7 +108,23 @@ export default function ChatPage() {
                 padding: "6px 8px",
                 backgroundColor: appConfig.theme.colors.neutrals[800],
                 marginRight: "12px",
+                marginBottom: "-8px", // fiz uma gambiarra aqui...
                 color: appConfig.theme.colors.neutrals[200],
+              }}
+            />
+
+            <Button
+              label="Enviar"
+              onClick={sendMessage}
+              buttonColors={{
+                contrastColor: appConfig.theme.colors.neutrals["900"],
+                mainColor: "#0CD44F",
+                mainColorLight: "#51F588",
+                mainColorStrong: "#099A39",
+              }}
+              styleSheet={{
+                width: "5em",
+                height: "100%",
               }}
             />
           </Box>
@@ -140,8 +159,15 @@ function Header() {
 }
 
 function MessageList(props) {
-  console.log("MessageList", props);
-  const messages = [].concat(props.mensagens).reverse();
+  function deleteMessage(messageId) {
+    return (event) => {
+      props.setMensagens(
+        props.mensagens.filter((item) => {
+          return item.id != messageId;
+        })
+      );
+    };
+  }
   return (
     <Box
       tag="ul"
@@ -154,7 +180,7 @@ function MessageList(props) {
         marginBottom: "16px",
       }}
     >
-      {messages.map((item) => {
+      {props.mensagens.map((item) => {
         return (
           <Text
             key={item.id}
@@ -171,6 +197,8 @@ function MessageList(props) {
             <Box
               styleSheet={{
                 marginBottom: "8px",
+                display: "flex",
+                alignItems: "center",
               }}
             >
               <Image
@@ -194,6 +222,20 @@ function MessageList(props) {
               >
                 {item.date}
               </Text>
+              <Box
+                styleSheet={{
+                  width: "100%",
+                  display: "flex",
+                  justifyContent: "flex-end",
+                }}
+              >
+                <Button
+                  label="x"
+                  variant="tertiary"
+                  size="xs"
+                  onClick={deleteMessage(item.id)}
+                />
+              </Box>
             </Box>
             {item.message.split("\n").map((line) => {
               return <Box tag="div">{line}</Box>;
