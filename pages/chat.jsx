@@ -1,4 +1,5 @@
 import { Box, Text, TextField, Image, Button } from "@skynexui/components";
+import { useRouter } from "next/router";
 import React, { useState } from "react";
 import appConfig from "../config.json";
 
@@ -135,6 +136,9 @@ export default function ChatPage() {
 }
 
 function Header() {
+  // Router
+  const roteamento = useRouter();
+
   return (
     <>
       <Box
@@ -151,7 +155,9 @@ function Header() {
           variant="tertiary"
           colorVariant="neutral"
           label="Logout"
-          href="/"
+          onClick={() => {
+            roteamento.push("/");
+          }}
         />
       </Box>
     </>
@@ -180,7 +186,7 @@ function MessageList(props) {
         marginBottom: "16px",
       }}
     >
-      {props.mensagens.map((item) => {
+      {props.mensagens.map((item, index) => {
         return (
           <Text
             key={item.id}
@@ -194,52 +200,57 @@ function MessageList(props) {
               },
             }}
           >
-            <Box
-              styleSheet={{
-                marginBottom: "8px",
-                display: "flex",
-                alignItems: "center",
-              }}
-            >
-              <Image
-                styleSheet={{
-                  width: "20px",
-                  height: "20px",
-                  borderRadius: "50%",
-                  display: "inline-block",
-                  marginRight: "8px",
-                }}
-                src={`https://github.com/${item.user}.png`}
-              />
-              <Text tag="strong">{item.user_name}</Text>
-              <Text
-                styleSheet={{
-                  fontSize: "10px",
-                  marginLeft: "8px",
-                  color: appConfig.theme.colors.neutrals[300],
-                }}
-                tag="span"
-              >
-                {item.date}
-              </Text>
+            {(props.mensagens[index + 1] || { user: undefined }).user ===
+            item.user ? (
+              // Don`t show user pic if the last message already did
+              <></>
+            ) : (
+              // Show user pic + date
               <Box
                 styleSheet={{
-                  width: "100%",
+                  marginBottom: "8px",
                   display: "flex",
-                  justifyContent: "flex-end",
+                  alignItems: "center",
                 }}
               >
-                <Button
-                  label="x"
-                  variant="tertiary"
-                  size="xs"
-                  onClick={deleteMessage(item.id)}
+                <Image
+                  styleSheet={{
+                    width: "20px",
+                    height: "20px",
+                    borderRadius: "50%",
+                    display: "inline-block",
+                    marginRight: "8px",
+                  }}
+                  src={`https://github.com/${item.user}.png`}
                 />
+                <Text tag="strong">{item.user_name}</Text>
+                <Text
+                  styleSheet={{
+                    fontSize: "10px",
+                    marginLeft: "8px",
+                    color: appConfig.theme.colors.neutrals[300],
+                  }}
+                  tag="span"
+                >
+                  {item.date}
+                </Text>
               </Box>
+            )}
+            <Box
+              styleSheet={{
+                display: "flex",
+                justifyContent: "space-between",
+                whiteSpace: "pre-line",
+              }}
+            >
+              {item.message}
+              <Button
+                label="x"
+                variant="tertiary"
+                size="xs"
+                onClick={deleteMessage(item.id)}
+              />
             </Box>
-            {item.message.split("\n").map((line) => {
-              return <Box tag="div">{line}</Box>;
-            })}
           </Text>
         );
       })}
