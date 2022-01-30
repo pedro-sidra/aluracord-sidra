@@ -14,8 +14,6 @@ const SUPABASE_URL = "https://hjrthpfurhaiopxgkemf.supabase.co";
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 export default function ChatPage() {
-  // Sua lógica vai aqui
-
   const [mensagem, setMensagem] = useState("");
   const [mensagens, setMensagens] = useState([]);
 
@@ -276,7 +274,7 @@ function MessageList(props) {
                     }}
                     tag="span"
                   >
-                    {item.created_at}
+                    {new Date(item.created_at).toLocaleDateString("pt-br", {hour:"numeric", minute:"numeric"})}
                   </Text>
                 </Box>
               )}
