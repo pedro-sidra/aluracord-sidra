@@ -30,7 +30,6 @@ export default function ChatPage() {
       .select("*")
       .order("id", { ascending: false })
       .then(({ data }) => {
-        console.log(data);
         setMensagens(data);
       });
   }, []);
@@ -51,20 +50,20 @@ export default function ChatPage() {
       );
     };
   }
-  function sendMessage() {
-    if (mensagem.length === 0) {
+  function sendMessage(message) {
+    if (message.length === 0) {
       return;
     }
     const new_mensagem = {
-      texto: mensagem,
+      texto: message,
       de: loggedIn,
     };
-    console.log(loggedIn);
 
     supabaseClient
       .from("mensagens")
       .insert([new_mensagem])
       .then((response) => {
+        console.log(response.data[0]);
         setMensagens([response.data[0], ...mensagens]);
       });
 
@@ -142,7 +141,7 @@ export default function ChatPage() {
               onKeyDown={(event) => {
                 if (event.key === "Enter" && !event.shiftKey) {
                   event.preventDefault();
-                  sendMessage();
+                  sendMessage(mensagem);
                 }
               }}
               styleSheet={{
@@ -160,7 +159,9 @@ export default function ChatPage() {
 
             <Button
               label="Enviar"
-              onClick={sendMessage}
+              onClick={() => {
+                sendMessage(mensagem);
+              }}
               buttonColors={{
                 contrastColor: appConfig.theme.colors.neutrals["900"],
                 mainColor: "#0CD44F",
@@ -169,10 +170,16 @@ export default function ChatPage() {
               }}
               styleSheet={{
                 width: "5em",
-                height: "100%",
+                height: "90%",
+                marginRight: "1em",
               }}
             />
-            <ButtonSendSticker/>
+
+            <ButtonSendSticker
+              onStickerClick={(sticker) => {
+                sendMessage(`:sticker: ${sticker}`);
+              }}
+            />
           </Box>
         </Box>
       </Box>
@@ -222,78 +229,84 @@ function MessageList(props) {
         marginBottom: "16px",
       }}
     >
-      {props.mensagens.map((item, index) => {
-        return (
-          <Text
-            key={item.id}
-            tag="li"
-            styleSheet={{
-              borderRadius: "5px",
-              padding: "6px",
-              marginBottom: "12px",
-              hover: {
-                backgroundColor: appConfig.theme.colors.neutrals[700],
-              },
-            }}
-          >
-            {(props.mensagens[index + 1] || { de: undefined }).de ===
-            item.de ? (
-              // Don`t show user pic if the last message already did
-              <></>
-            ) : (
-              // Show user pic + date
-              <Box
-                styleSheet={{
-                  marginBottom: "8px",
-                  display: "flex",
-                  alignItems: "center",
-                }}
-              >
-                <Image
-                  styleSheet={{
-                    width: "20px",
-                    height: "20px",
-                    borderRadius: "50%",
-                    display: "inline-block",
-                    marginRight: "8px",
-                  }}
-                  src={`https://github.com/${item.de}.png`}
-                />
-                <Text tag="strong">{item.de}</Text>
-                <Text
-                  styleSheet={{
-                    fontSize: "10px",
-                    marginLeft: "8px",
-                    color: appConfig.theme.colors.neutrals[300],
-                  }}
-                  tag="span"
-                >
-                  {item.created_at}
-                </Text>
-              </Box>
-            )}
-            <Box
+      {props.mensagens.length > 0 &&
+        props.mensagens.map((item, index) => {
+          return (
+            <Text
+              key={item.id}
+              tag="li"
               styleSheet={{
-                display: "flex",
-                justifyContent: "space-between",
-                whiteSpace: "pre-line",
+                borderRadius: "5px",
+                padding: "6px",
+                marginBottom: "12px",
+                hover: {
+                  backgroundColor: appConfig.theme.colors.neutrals[700],
+                },
               }}
             >
-              {item.texto}
-              {item.de === props.loggedIn ? (
-                <Button
-                  label="x"
-                  variant="tertiary"
-                  size="xs"
-                  onClick={props.onDelete(item.id)}
-                />
-              ) : (
+              {(props.mensagens[index + 1] || { de: undefined }).de ===
+              item.de ? (
+                // Don`t show user pic if the last message already did
                 <></>
+              ) : (
+                // Show user pic + date
+                <Box
+                  styleSheet={{
+                    marginBottom: "8px",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  <Image
+                    styleSheet={{
+                      width: "20px",
+                      height: "20px",
+                      borderRadius: "50%",
+                      display: "inline-block",
+                      marginRight: "8px",
+                    }}
+                    src={`https://github.com/${item.de}.png`}
+                  />
+                  <Text tag="strong">{item.de}</Text>
+                  <Text
+                    styleSheet={{
+                      fontSize: "10px",
+                      marginLeft: "8px",
+                      color: appConfig.theme.colors.neutrals[300],
+                    }}
+                    tag="span"
+                  >
+                    {item.created_at}
+                  </Text>
+                </Box>
               )}
-            </Box>
-          </Text>
-        );
-      })}
+              <Box
+                styleSheet={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  whiteSpace: "pre-line",
+                }}
+              >
+                {item.texto.startsWith(":sticker:") ? (
+                  <Image
+                    width="200px"
+                    src={item.texto.replace(":sticker:", "")}
+                  ></Image>
+                ) : (
+                  item.texto
+                )}
+                {item.de === props.loggedIn && (
+                  <Button
+                    label="x"
+                    variant="tertiary"
+                    size="xs"
+                    onClick={props.onDelete(item.id)}
+                  />
+                )}
+              </Box>
+            </Text>
+          );
+        })}
     </Box>
   );
 }
