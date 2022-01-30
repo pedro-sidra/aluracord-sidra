@@ -13,6 +13,20 @@ const SUPABASE_URL = "https://hjrthpfurhaiopxgkemf.supabase.co";
 // Create a single supabase client for interacting with your database
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+function escutaMensagens(addMensagens, removeMensagens) {
+  return supabaseClient
+    .from("mensagens")
+    .on("*", (data) => {
+      if (data.eventType === "INSERT") {
+        addMensagens(data);
+      }
+      if (data.eventType === "DELETE") {
+        removeMensagens(data);
+      }
+    })
+    .subscribe();
+}
+
 export default function ChatPage() {
   const [mensagem, setMensagem] = useState("");
   const [mensagens, setMensagens] = useState([]);
@@ -30,6 +44,21 @@ export default function ChatPage() {
       .then(({ data }) => {
         setMensagens(data);
       });
+
+    escutaMensagens(
+      (data) => {
+        setMensagens((current) => {
+          return [data.new, ...current];
+        });
+      },
+      (data) => {
+        setMensagens((current) => {
+          return current.filter((item) => {
+            return item.id != data.old.id;
+          });
+        });
+      }
+    );
   }, []);
 
   function deleteMessage(messageId) {
@@ -41,11 +70,11 @@ export default function ChatPage() {
         .then((response) => {
           console.log(response);
         });
-      setMensagens(
-        mensagens.filter((item) => {
-          return item.id != messageId;
-        })
-      );
+      // setMensagens(
+      //   mensagens.filter((item) => {
+      //     return item.id != messageId;
+      //   })
+      // );
     };
   }
   function sendMessage(message) {
@@ -62,7 +91,7 @@ export default function ChatPage() {
       .insert([new_mensagem])
       .then((response) => {
         console.log(response.data[0]);
-        setMensagens([response.data[0], ...mensagens]);
+        // setMensagens([response.data[0], ...mensagens]);
       });
 
     // Limpar variável
@@ -274,7 +303,10 @@ function MessageList(props) {
                     }}
                     tag="span"
                   >
-                    {new Date(item.created_at).toLocaleDateString("pt-br", {hour:"numeric", minute:"numeric"})}
+                    {new Date(item.created_at).toLocaleDateString("pt-br", {
+                      hour: "numeric",
+                      minute: "numeric",
+                    })}
                   </Text>
                 </Box>
               )}
